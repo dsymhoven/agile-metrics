@@ -2,6 +2,7 @@ from jira import JIRA
 import config
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import pandas as pd
 import numpy as np
 import random
 import datetime as dt
@@ -41,6 +42,7 @@ def monte_carlo_simulation(trials: int):
     return sprintdistribution
 
 distribution = monte_carlo_simulation(10000)
+s = pd.Series(distribution)
 check = random.choices(PBI_finished_per_sprint, k=1000)
 
 result_average = calc_range_until_finsihed_with(PBI_average)
@@ -59,11 +61,20 @@ forecast_average = np.cumsum(future_average_array)
 forecast_min = np.cumsum(future_min_array)
 forecast_max = np.cumsum(future_max_array)
 
-perc = np.percentile(distribution, [70, 80, 85, 95])
 y = np.array([number_PBI_to_be_finished for x in range(len(dates))])
 
 plt.figure(0)
-plt.hist(distribution)
+s.plot(kind='hist', density=True, bins=10)
+s.plot.kde(bw_method=1)
+plt.axvline(np.percentile(distribution, 25), ymax = 0.5, linestyle = ':', color = 'green')
+plt.axvline(np.percentile(distribution, 50), ymax = 0.6, linestyle = ':', color = 'green')
+plt.axvline(np.percentile(distribution, 75), ymax = 0.7, linestyle = ':', color = 'green')
+plt.axvline(np.percentile(distribution, 95), ymax = 0.8, linestyle = ':', color = 'green')
+plt.axis([0, 10, 0, 1])
+plt.text(np.percentile(distribution, 25), 0.5, '25%')
+plt.text(np.percentile(distribution, 50), 0.6, '50%')
+plt.text(np.percentile(distribution, 70), 0.7, '70%')
+plt.text(np.percentile(distribution, 95), 0.8, '95%')
 plt.title('MC distribution')
 
 plt.figure(1)
