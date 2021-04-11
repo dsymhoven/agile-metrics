@@ -8,18 +8,32 @@ import datetime as dt
 
 
 PBI_finished = [6, 0, 6, 11, 5, 5, 6, 7, 11, 10, 10, 3, 5, 5, 13, 10, 14, 12, 10, 14, 4, 14, 11, 8, 13, 8]
+number_PBI_to_be_finished = 260
 PBI_cumulative = np.cumsum(PBI_finished)
 PBI_average = np.average(PBI_finished)
 PBI_stddeviation = np.std(PBI_finished)
 dates = ['15/04/20', '21/04/20', '06/05/20', '19/05/20', '02/06/20', '16/06/20', '30/06/20', '14/07/20', '28/07/20',
          '11/08/20', '25/08/20', '09/09/20', '22/09/20', '08/10/20', '20/10/20', '03/11/20', '17/11/20', '01/12/20',
          '15/12/20', '12/01/21', '26/01/21', '09/02/21', '24/02/21', '10/03/21', '23/03/21', '06/04/21', '20/04/21',
-         '04/05/21', '18/05/21', '01/06/21', '15/06/21', '29/06/21']
+         '04/05/21', '18/05/21', '01/06/21', '15/06/21', '29/06/21', '13/07/21', '27/07/21', '10/08/21', '24/08/21',
+         '07/09/21']
 
+def calc_range_until_finsihed_with(number):
+    PBI_finsished = PBI_cumulative[-1]
+    number_of_sprints = 1
+    while PBI_finsished < number_PBI_to_be_finished:
+        PBI_finsished += number
+        number_of_sprints += 1
 
-future_average_array = [PBI_average for x in range(6)]
-future_min_array = [PBI_average - PBI_stddeviation for x in range(6)]
-future_max_array = [PBI_average + PBI_stddeviation for x in range (6)]
+    return number_of_sprints - 1
+
+result_average = calc_range_until_finsihed_with(PBI_average)
+result_min = calc_range_until_finsihed_with(PBI_average - PBI_stddeviation)
+result_max = calc_range_until_finsihed_with(PBI_average + PBI_stddeviation)
+
+future_average_array = [PBI_average for x in range(result_average)]
+future_min_array = [PBI_average - PBI_stddeviation for x in range(result_min)]
+future_max_array = [PBI_average + PBI_stddeviation for x in range (result_max)]
 
 future_average_array.insert(0, PBI_cumulative[-1])
 future_min_array.insert(0, PBI_cumulative[-1])
@@ -29,13 +43,13 @@ forecast_average = np.cumsum(future_average_array)
 forecast_min = np.cumsum(future_min_array)
 forecast_max = np.cumsum(future_max_array)
 
-
+y = np.array([number_PBI_to_be_finished for x in range(len(dates))])
 
 plt.plot(dates[0:len(PBI_finished)], PBI_cumulative)
-plt.plot(dates[len(PBI_finished)-1:], forecast_average)
-plt.plot(dates[len(PBI_finished)-1:], forecast_min)
-plt.plot(dates[len(PBI_finished)-1:], forecast_max)
-#plt.plot(dates, forecast_average)
+plt.plot(dates[len(PBI_finished)-1:len(PBI_finished)-1 + len(forecast_average)], forecast_average)
+plt.plot(dates[len(PBI_finished)-1:len(PBI_finished)-1 + len(forecast_min)], forecast_min)
+plt.plot(dates[len(PBI_finished)-1:len(PBI_finished)-1 + len(forecast_max)], forecast_max)
+plt.plot(dates, y)
 plt.gcf().autofmt_xdate()
 plt.show()
 
