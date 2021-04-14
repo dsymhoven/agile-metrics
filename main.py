@@ -5,6 +5,23 @@ import numpy as np
 import random
 
 # functions
+def get_intersect(a1, a2, b1, b2):
+    """
+    Returns the point of intersection of the lines passing through a2,a1 and b2,b1.
+    a1: [x, y] a point on the first line
+    a2: [x, y] another point on the first line
+    b1: [x, y] a point on the second line
+    b2: [x, y] another point on the second line
+    """
+    s = np.vstack([a1,a2,b1,b2])        # s for stacked
+    h = np.hstack((s, np.ones((4, 1)))) # h for homogeneous
+    l1 = np.cross(h[0], h[1])           # get first line
+    l2 = np.cross(h[2], h[3])           # get second line
+    x, y, z = np.cross(l1, l2)          # point of intersection
+    if z == 0:                          # lines are parallel
+        return (float('inf'), float('inf'))
+    return (x/z, y/z)
+
 def calc_range_until_finsihed_with(number):
     PBI_finsished = PBI_cumulative[-1]
     sprints = 0
@@ -92,19 +109,29 @@ future_best_case_array.insert(0, PBI_cumulative[-1])
 
 # calculate cumulative PBIs
 forecast_average = np.cumsum(future_average_array)
-forecast_min = np.cumsum(future_worst_case_array)
-forecast_max = np.cumsum(future_best_case_array)
+forecast_worst_case = np.cumsum(future_worst_case_array)
+forecast_best_case = np.cumsum(future_best_case_array)
 
 
-scope_to_be_finished = np.array([number_PBI_to_be_finished for x in range(len(dates))])
+scope_to_be_finished_line = np.array([number_PBI_to_be_finished for x in range(len(dates))])
+
+# first element of forecasts is last element of cumulative.
+# -2 because I want the beginning of the sprint when stories will be finished
+date_best_case = dates[len(PBI_finished_per_sprint) - 1 + len(forecast_best_case) - 2]
+date_average = dates[len(PBI_finished_per_sprint) - 1 + len(forecast_average) - 2]
+date_worst_case = dates[len(PBI_finished_per_sprint) - 1 + len(forecast_worst_case) - 2]
 
 
 plt.figure(2)
-plt.plot(dates[0:len(PBI_finished_per_sprint)], PBI_cumulative)
-plt.plot(dates[len(PBI_finished_per_sprint) - 1:len(PBI_finished_per_sprint) - 1 + len(forecast_average)], forecast_average)
-plt.plot(dates[len(PBI_finished_per_sprint) - 1:len(PBI_finished_per_sprint) - 1 + len(forecast_min)], forecast_min)
-plt.plot(dates[len(PBI_finished_per_sprint) - 1:len(PBI_finished_per_sprint) - 1 + len(forecast_max)], forecast_max)
-plt.plot(dates, scope_to_be_finished)
+plt.plot(dates[0:len(PBI_finished_per_sprint)], PBI_cumulative, label='PBI cumulative')
+plt.plot(dates[len(PBI_finished_per_sprint) - 1:len(PBI_finished_per_sprint) - 1 + len(forecast_average)], forecast_average, label='forecast average')
+plt.plot(dates[len(PBI_finished_per_sprint) - 1:len(PBI_finished_per_sprint) - 1 + len(forecast_worst_case)], forecast_worst_case, label='forecast worst case')
+plt.plot(dates[len(PBI_finished_per_sprint) - 1:len(PBI_finished_per_sprint) - 1 + len(forecast_best_case)], forecast_best_case, label='forecast best case')
+plt.axvline(x=date_best_case, color='b', linestyle='--')
+plt.axvline(x=date_average, color='b', linestyle='--')
+plt.axvline(x=date_worst_case, color='b', linestyle='--')
+plt.plot(dates, scope_to_be_finished_line)
+plt.legend(loc='upper left')
 plt.gcf().autofmt_xdate()
 plt.show()
 
