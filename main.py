@@ -1,27 +1,11 @@
 from jira import JIRA
-import config
+import professional
+import voice
 import matplotlib.pyplot as plt
 import numpy as np
 import random
 
 # functions
-def get_intersect(a1, a2, b1, b2):
-    """
-    Returns the point of intersection of the lines passing through a2,a1 and b2,b1.
-    a1: [x, y] a point on the first line
-    a2: [x, y] another point on the first line
-    b1: [x, y] a point on the second line
-    b2: [x, y] another point on the second line
-    """
-    s = np.vstack([a1,a2,b1,b2])        # s for stacked
-    h = np.hstack((s, np.ones((4, 1)))) # h for homogeneous
-    l1 = np.cross(h[0], h[1])           # get first line
-    l2 = np.cross(h[2], h[3])           # get second line
-    x, y, z = np.cross(l1, l2)          # point of intersection
-    if z == 0:                          # lines are parallel
-        return (float('inf'), float('inf'))
-    return (x/z, y/z)
-
 def calc_range_until_finsihed_with(number):
     PBI_finsished = PBI_cumulative[-1]
     sprints = 0
@@ -52,7 +36,7 @@ def plot_histogram(distribution: [int]):
     plt.axvline(percentiles[1], ymax = 0.6, linestyle = ':', color = 'green')
     plt.axvline(percentiles[2], ymax = 0.7, linestyle = ':', color = 'green')
     plt.axvline(percentiles[3], ymax = 0.8, linestyle = ':', color = 'green')
-    plt.axis([0, 10, 0, 1])
+    plt.axis([0, max(distribution), 0, 1])
 
     plt.text(percentiles[0], 0.5, '25%')
     plt.text(percentiles[1], 0.6, '50%')
@@ -67,19 +51,17 @@ def plot_mc_validation(sampleDistribution: [int]):
     plt.figure(1)
     plt.hist(sampleDistribution, density=True, label="sample Distribution")
     plt.hist(validationDistribution, density=True, alpha=0.3, label="validation")
+    plt.xlabel('PBIs finished per Sprint')
+    plt.ylabel('density')
     plt.legend(loc='upper right')
     plt.show()
 
 
 
 # config
-PBI_finished_per_sprint = [6, 0, 6, 11, 5, 5, 6, 7, 11, 10, 10, 3, 5, 5, 13, 10, 14, 12, 10, 14, 4, 14, 11, 8, 13, 8]
-number_PBI_to_be_finished = 260
-dates = ['15/04/20', '21/04/20', '06/05/20', '19/05/20', '02/06/20', '16/06/20', '30/06/20', '14/07/20', '28/07/20',
-         '11/08/20', '25/08/20', '09/09/20', '22/09/20', '08/10/20', '20/10/20', '03/11/20', '17/11/20', '01/12/20',
-         '15/12/20', '12/01/21', '26/01/21', '09/02/21', '24/02/21', '10/03/21', '23/03/21', '06/04/21', '20/04/21',
-         '04/05/21', '18/05/21', '01/06/21', '15/06/21', '29/06/21', '13/07/21', '27/07/21', '10/08/21', '24/08/21',
-         '07/09/21']
+PBI_finished_per_sprint = voice.PBI_finished_per_sprint
+number_PBI_to_be_finished = voice.number_PBI_to_be_finished
+dates = voice.dates
 
 # basic forecast calculations
 PBI_cumulative = np.cumsum(PBI_finished_per_sprint)
@@ -89,7 +71,7 @@ PBI_stddeviation = np.std(PBI_finished_per_sprint)
 
 # simulations
 distribution = monte_carlo_simulation(10000)
-plot_mc_validation(distribution)
+plot_mc_validation(PBI_finished_per_sprint)
 plot_histogram(distribution)
 
 # forecast number of sprints based on std deviation
